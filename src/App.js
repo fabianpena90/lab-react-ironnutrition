@@ -1,46 +1,86 @@
 import React, { useState } from 'react';
+import logo from './logo.svg';
 import './App.css';
 import 'bulma/css/bulma.css';
 import foodsJSON from './foods.json';
-import FoodBox from './FoodBox.js'
+import FoodBox from './FoodBox.js';
 
 function App() {
-  const [toggle, setToggle] = useState(false);
-  const [foods, setFoods] = useState(foodsJSON)
-  const [foodName, setFoodName] = useState('')
-  const [foodCalories, setFoodCalories] = useState('')
-  const [foodImages, setfoodImages] = useState('')
-  const [allFoods, setallFoods] = useState(foodsJSON);
+  let [toggle, setToggle] = useState(false);
+  let [foodName, setFoodName] = useState('');
+  let [foods, setFoods] = useState(foodsJSON);
+  let [allFoods, setallFoods] = useState(foodsJSON);
+  let [foodCalories, setFoodCalories] = useState('');
+  let [newImage, setNewImage] = useState('');
+  let [todaysFood, setTodaysFood] = useState({});
 
-
-  const showFoods = () => {
-    return foods.map((eachfood) => {
-      return <FoodBox {...eachfood} />;
-    });
-  };
-
-  const showFields = () => {
+  const summonFields = () => {
     setToggle(!toggle);
   };
 
+  const addTodaysFood = (food) => {
+    console.log('addTodaysFood', food);
+    // todaysFood.food = food
+    let todaysFoodCopy = { ...todaysFood };
+    todaysFoodCopy[food.name] = food;
+    setTodaysFood(todaysFoodCopy);
+  };
+
+  const showTodaysFood = () => {
+    let html = [];
+    let totalCaloires = 0;
+    let todaysFoodCopy = { ...todaysFood };
+    for (let food in todaysFoodCopy) {
+      html.push(
+        <ul>
+          <li>
+            Name: <h3>{food}</h3>
+          </li>
+          <li>Quantity: {todaysFoodCopy[food].quantity}</li>
+          <li>Calories: {todaysFoodCopy[food].calories}</li>
+          <li>
+            <img src={todaysFoodCopy[food].image} alt="" />
+          </li>
+        </ul>
+      );
+      totalCaloires +=
+        Number(todaysFoodCopy[food].quantity) *
+        Number(todaysFoodCopy[food].calories);
+    }
+
+    // return html;
+    return (
+      <div>
+        totalCaloires {totalCaloires} {html}
+      </div>
+    );
+  };
+  const showFoods = () => {
+    return foods.map((eachfood) => {
+      return <FoodBox {...eachfood} addTodaysFoodProp={addTodaysFood} />;
+    });
+  };
 
   const showForm = () => {
     return toggle ? (
-      <form onClick={submitFood}>
+      <form onSubmit={submitFood}>
         <input
           placeholder="Enter food"
           type="text"
           name="food"
+          onChange={(e) => setFoodName(e.target.value)}
         ></input>
         <input
           placeholder="Enter calories"
           type="text"
           name="calories"
+          onChange={(e) => setFoodCalories(e.target.value)}
         ></input>
         <input
           placeholder="Enter image"
           type="url"
           name="image"
+          onChange={(e) => setNewImage(e.target.value)}
         ></input>
         <button>Submit</button>
       </form>
@@ -49,28 +89,28 @@ function App() {
 
   const submitFood = (e) => {
     e.preventDefault();
-    // console.log('clicked');
-    let newFood = [...foods]
-    // console.log(newFood)
-    newFood.unshift({
+    let foodsCopy = [...foods];
+    foodsCopy.unshift({
       name: foodName,
       calories: foodCalories,
-      image: foodImages
+      image: newImage,
     });
-    setFoods(newFood)
-    setallFoods(newFood)
-  }
+    setFoods(foodsCopy);
+    setallFoods(foodsCopy);
+  };
+  //console.log(foodName, foodCalories)
 
   const searchFood = (e) => {
-    console.log(e.target.value)
-    const result = [...allFoods].filter((food) => food.name.toLowerCase().includes(e.target.value));
-    setFoods(result)
-  }
-
-
+    console.log(e.target.value);
+    let result = [...allFoods].filter((food) =>
+      food.name.toLowerCase().includes(e.target.value)
+    );
+    setFoods(result);
+  };
+  console.log(todaysFood);
   return (
     <div className="App">
-      <button onClick={showFields}>Add New Food</button>
+      <button onClick={summonFields}>Add New Food</button>
       <input
         onChange={searchFood}
         type="text"
@@ -78,9 +118,11 @@ function App() {
         placeholder="Search"
         style={{ width: '100%' }}
       />
+      {showTodaysFood()}
       {showForm()}
       {showFoods()}
-     </div>
-  )
+    </div>
+  );
 }
+
 export default App;
